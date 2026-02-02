@@ -45,7 +45,7 @@
   # Packages
   environment.systemPackages = with pkgs; [
     # dev
-    python313Full
+    python3Full
     nodejs
     git
     gh

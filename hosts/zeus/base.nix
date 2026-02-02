@@ -63,7 +63,7 @@
 
     # verify ROCm/OpenCL
     clinfo
-    rocminfo
+    rocmPackages.rocminfo
     rocmPackages.rocm-smi
 
     # tailscale cli

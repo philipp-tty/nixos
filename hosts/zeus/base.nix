@@ -31,7 +31,8 @@
 
   # SSH
   services.openssh.enable = true;
-  programs.ssh.startAgent = true;
+  # GNOME enables gcr-ssh-agent; avoid a second SSH agent.
+  programs.ssh.startAgent = false;
 
   # Tailscale
   services.tailscale.enable = true;

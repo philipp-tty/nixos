@@ -20,6 +20,37 @@
   services.xserver.enable = true;
   services.displayManager.gdm.enable = true;
   services.desktopManager.gnome.enable = true;
+  programs.dconf.enable = true;
+
+  dconf.settings = {
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-light";
+      gtk-theme = "adw-gtk3";
+      icon-theme = "Papirus";
+    };
+    "org/gnome/desktop/wm/preferences" = {
+      # macOS-style window buttons on the left
+      button-layout = "close,minimize,maximize:";
+    };
+    "org/gnome/mutter" = {
+      center-new-windows = true;
+    };
+    "org/gnome/shell" = {
+      enabled-extensions = [
+        "dash-to-dock@micxgx.gmail.com"
+        "user-theme@gnome-shell-extensions.gcampax.github.com"
+      ];
+    };
+    "org/gnome/shell/extensions/dash-to-dock" = {
+      dock-position = "BOTTOM";
+      dock-fixed = false;
+      autohide = true;
+      dash-max-icon-size = 48;
+      click-action = "minimize";
+      show-trash = false;
+      show-mounts = false;
+    };
+  };
 
   # AMD GPU + Steam/Proton (32-bit userspace)
   hardware.graphics.enable = true;
@@ -70,5 +101,12 @@
 
     # tailscale cli
     tailscale
+
+    # GNOME look & feel (macOS-ish)
+    gnome-tweaks
+    adw-gtk3
+    papirus-icon-theme
+    gnomeExtensions.dash-to-dock
+    gnomeExtensions.user-themes
   ];
 }

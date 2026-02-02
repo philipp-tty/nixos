@@ -18,6 +18,8 @@ This repo tracks my NixOS machines and setups.
 sudo nixos-rebuild switch --flake .#zeus
 ```
 
+For a guided install/first-boot flow, use `scripts/bootstrap.sh` (see `docs/INSTALL.md`).
+
 ## Notes
 
 - Keep secrets out of this repo (SSH keys, tokens, etc.).

@@ -83,6 +83,7 @@
     git
     gh
     codex
+    micromamba
 
     # apps
     discord
@@ -90,9 +91,15 @@
     firefox
     google-chrome
     cider
+    vscode
+    obsidian
+    rustdesk
+    bambu-studio
+    usbimager
 
     # IDE
     jetbrains.pycharm-community
+    jetbrains-toolbox
 
     # verify ROCm/OpenCL
     clinfo

@@ -19,6 +19,7 @@ sudo nixos-rebuild switch --flake .#zeus
 ```
 
 For a guided install/first-boot flow, use `scripts/bootstrap.sh` (see `docs/INSTALL.md`).
+For handling secrets in a public repo, see `docs/SECRETS.md`.
 
 ## Notes
 

@@ -27,5 +27,15 @@
           }
         ];
       };
+
+      nixosConfigurations.zeus-installer = nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+          ./hosts/zeus/installer.nix
+        ];
+      };
+
+      packages.${system}.zeus-installer-iso =
+        self.nixosConfigurations.zeus-installer.config.system.build.isoImage;
     };
 }

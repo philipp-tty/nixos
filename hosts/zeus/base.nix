@@ -59,7 +59,7 @@
     cider
 
     # IDE
-    jetbrains.pycharm-community
+    jetbrains.pycharm-oss
 
     # verify ROCm/OpenCL
     clinfo

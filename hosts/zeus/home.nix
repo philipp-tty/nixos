@@ -13,12 +13,24 @@
       gtk-theme = "adw-gtk3";
       icon-theme = "Papirus";
     };
+    "org/gnome/desktop/session" = {
+      # OLED burn-in mitigation: blank quickly when idle.
+      idle-delay = 300; # seconds
+    };
+    "org/gnome/desktop/screensaver" = {
+      lock-enabled = true;
+      lock-delay = 60; # seconds after blanking
+    };
+    "org/gnome/settings-daemon/plugins/power" = {
+      idle-dim = true;
+    };
     "org/gnome/desktop/wm/preferences" = {
       # macOS-style window buttons on the left
       button-layout = "close,minimize,maximize:";
     };
     "org/gnome/mutter" = {
       center-new-windows = true;
+      experimental-features = [ "scale-monitor-framebuffer" "variable-refresh-rate" ];
     };
     "org/gnome/shell" = {
       enabled-extensions = [

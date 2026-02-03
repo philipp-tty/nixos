@@ -1,0 +1,19 @@
+name: hf-env
+
+on:
+  workflow_dispatch:
+
+jobs:
+  show-hf-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print HF_REPO (masked)
+        env:
+          HF_REPO: ${{ secrets.HF_REPO }}
+        run: |
+          if [ -z "$HF_REPO" ]; then
+            echo "HF_REPO is empty or not set"
+            exit 1
+          fi
+          echo "HF_REPO=$HF_REPO"
+          echo "HF_REPO length=${#HF_REPO}"

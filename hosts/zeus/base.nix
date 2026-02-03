@@ -31,7 +31,8 @@
 
   # SSH
   services.openssh.enable = true;
-  programs.ssh.startAgent = true;
+  # GNOME enables gcr-ssh-agent; avoid a second SSH agent.
+  programs.ssh.startAgent = false;
 
   # Tailscale
   services.tailscale.enable = true;
@@ -44,7 +45,7 @@
   # Packages
   environment.systemPackages = with pkgs; [
     # dev
-    python313Full
+    python3
     nodejs
     git
     gh
@@ -64,7 +65,7 @@
     usbimager
 
     # IDE
-    jetbrains.pycharm-community
+    jetbrains.pycharm-oss
     jetbrains-toolbox
 
     # verify ROCm/OpenCL

@@ -53,6 +53,22 @@ gitx() {
   nix-shell -p git --run "$cmd"
 }
 
+run_nix_command() {
+  if run_as_root command -v git >/dev/null 2>&1; then
+    run_as_root env NIX_CONFIG="$NIX_EXPERIMENTAL" "$@"
+    return
+  fi
+  if ! command -v nix-shell >/dev/null 2>&1; then
+    echo "git not found and nix-shell not available. Install git first." >&2
+    exit 1
+  fi
+  local cmd=""
+  for arg in "$@"; do
+    cmd+=" $(printf "%q" "$arg")"
+  done
+  run_as_root env NIX_CONFIG="$NIX_EXPERIMENTAL" nix-shell -p git --run "${cmd# }"
+}
+
 hw_tmp=""
 if [ -f "$hw_src" ]; then
   hw_tmp="$(mktemp)"
@@ -77,13 +93,13 @@ fi
 
 if $is_installer; then
   if [ "${SKIP_INSTALL:-0}" != "1" ]; then
-    run_as_root env NIX_CONFIG="$NIX_EXPERIMENTAL" nixos-install --flake "$target_dir#$HOST"
+    run_nix_command nixos-install --flake "$target_dir#$HOST"
   else
     echo "SKIP_INSTALL=1 set; skipping nixos-install."
   fi
 else
   if [ "${SKIP_REBUILD:-0}" != "1" ]; then
-    run_as_root env NIX_CONFIG="$NIX_EXPERIMENTAL" nixos-rebuild switch --flake "$target_dir#$HOST"
+    run_nix_command nixos-rebuild switch --flake "$target_dir#$HOST"
   else
     echo "SKIP_REBUILD=1 set; skipping nixos-rebuild."
   fi

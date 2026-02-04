@@ -64,7 +64,7 @@ If you can clone your repo:
 `
 git clone <your repo url> /mnt/etc/nixos
 `
-Or if you use your custom installer ISO, /mnt/etc/nixos already exists.
+Or if you use the custom installer ISO, /mnt/etc/nixos already exists.
 
 Then:
 `
@@ -73,7 +73,7 @@ reboot
 `
 
 ## Flake changes for Lanzaboote
-Edit lake.nix:
+Edit flake.nix:
 - Add lanzaboote input.
 - Include lanzaboote.nixosModules.lanzaboote in the mkZeus modules list.
 

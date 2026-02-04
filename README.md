@@ -26,3 +26,7 @@ For handling secrets in a public repo, see `docs/SECRETS.md`.
 - Keep secrets out of this repo (SSH keys, tokens, etc.).
 - Use the same Linux username when reinstalling if you want to keep your existing `/home` data.
 - See `docs/INSTALL.md` for the /home partition plan and first-install checklist.
+
+## Installer ISO
+
+- Direct download: https://huggingface.co/datasets/cilix0/nixos/resolve/main/zeus-installer.iso

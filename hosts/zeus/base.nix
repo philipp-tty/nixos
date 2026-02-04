@@ -12,6 +12,10 @@
   # Flakes (optional but handy if you keep this in git)
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  # Bootloader (UEFI)
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
   # GNOME
   services.xserver.enable = true;
   services.displayManager.gdm.enable = true;

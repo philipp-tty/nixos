@@ -3,7 +3,13 @@ set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/philipp-tty/nixos}"
 HOST="${HOST:-zeus}"
-NIX_EXPERIMENTAL="experimental-features = nix-command flakes"
+NIX_CONFIG_SNIPPET="$(
+  cat <<'EOF'
+experimental-features = nix-command flakes
+extra-substituters = https://nix-community.cachix.org
+extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+EOF
+)"
 
 is_installer=false
 if command -v findmnt >/dev/null 2>&1; then
@@ -57,7 +63,7 @@ run_nix_command() {
   # `sudo command -v ...` is unreliable because `command` is a shell builtin.
   # Check tool availability in the same root context we will run the nix command in.
   if run_as_root git --version >/dev/null 2>&1; then
-    run_as_root env NIX_CONFIG="$NIX_EXPERIMENTAL" "$@"
+    run_as_root env NIX_CONFIG="$NIX_CONFIG_SNIPPET" "$@"
     return
   fi
   if ! run_as_root nix-shell --version >/dev/null 2>&1; then
@@ -68,7 +74,7 @@ run_nix_command() {
   for arg in "$@"; do
     cmd+=" $(printf "%q" "$arg")"
   done
-  run_as_root env NIX_CONFIG="$NIX_EXPERIMENTAL" nix-shell -p git --run "${cmd# }"
+  run_as_root env NIX_CONFIG="$NIX_CONFIG_SNIPPET" nix-shell -p git --run "${cmd# }"
 }
 
 hw_tmp=""

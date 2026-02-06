@@ -9,8 +9,18 @@
   # Needed for Steam/Discord/Chrome/PyCharm (unfree)
   nixpkgs.config.allowUnfree = true;
 
-  # Flakes (optional but handy if you keep this in git)
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  # Nix: flakes + binary caches (prefer substitutes to avoid local builds).
+  nix.settings = {
+    experimental-features = [ "nix-command" "flakes" ];
+
+    # Keep the official NixOS cache and add nix-community for common community packages.
+    extra-substituters = [
+      "https://nix-community.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+    ];
+  };
 
   # Bootloader (UEFI)
   boot.loader.systemd-boot.enable = true;

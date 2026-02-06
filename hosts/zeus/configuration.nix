@@ -1,8 +1,7 @@
-{ config, pkgs, ... }:
-
-{
+_: {
   imports = [
     ./hardware-configuration.nix
     ./base.nix
+    ./desktop.nix
   ];
 }

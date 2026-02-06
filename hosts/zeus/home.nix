@@ -1,9 +1,9 @@
-{ config, pkgs, ... }:
-
-{
-  home.username = "philipp";
-  home.homeDirectory = "/home/philipp";
-  home.stateVersion = "25.11"; # Adjust to the NixOS release you first installed.
+_: {
+  home = {
+    username = "philipp";
+    homeDirectory = "/home/philipp";
+    stateVersion = "25.11"; # Adjust to the NixOS release you first installed.
+  };
 
   programs.home-manager.enable = true;
 
@@ -30,7 +30,7 @@
     };
     "org/gnome/mutter" = {
       center-new-windows = true;
-      experimental-features = [ "scale-monitor-framebuffer" "variable-refresh-rate" ];
+      experimental-features = ["scale-monitor-framebuffer" "variable-refresh-rate"];
     };
     "org/gnome/shell" = {
       enabled-extensions = [

@@ -1,117 +1,115 @@
-# Install notes (manual partitioning)
+# Install / Bootstrap
 
-Goal: keep `/home` on its own partition so you can reinstall NixOS without losing user data.
+This repo is a Nix flake. You apply a host config with:
 
-## Suggested layout (UEFI + GPT)
+```sh
+sudo nixos-rebuild switch --flake /path/to/repo#<host>
+```
 
-- EFI System Partition: 512 MiB, FAT32, mount at `/boot`
-- Root partition: 60-120 GiB, ext4, mount at `/`
-- Home partition: rest of disk, ext4, mount at `/home`
-- Optional swap: 8-32 GiB (or use a swap file later)
+Currently defined hosts live in `flake.nix` (`zeus`, `zeus-ci`). You can list them with:
 
-## High-level steps (installer shell)
+```sh
+nix flake show
+```
 
-1. Create the partitions (e.g. `gdisk`, `parted`, `cfdisk`).
-2. Format them:
+Before installing, skim the host files you are about to deploy:
+- `hosts/zeus/base.nix` (hostname, timezone, users, packages)
+- `hosts/zeus/home.nix` (Home Manager user + GNOME settings)
+
+## Fast Path (Recommended): `scripts/bootstrap.sh`
+
+The bootstrap script is meant for:
+- the NixOS installer (it runs `nixos-install`)
+- an installed machine (it runs `nixos-rebuild switch`)
+
+What it does:
+- clone or pull the repo
+- copy `hardware-configuration.nix` into `hosts/$HOST/hardware-configuration.nix` (when present)
+- run the install or rebuild with flakes enabled via `NIX_CONFIG`
+
+Environment variables:
+- `HOST` (default: `zeus`)
+- `REPO_URL` (default: `https://github.com/philipp-tty/nixos`)
+- `TARGET_DIR` (only on installed systems when running as a user; default: `~/nixos`)
+- `SKIP_INSTALL=1` / `SKIP_REBUILD=1` (sync files only)
+
+### Fresh install (from the NixOS ISO)
+
+1. Partition + mount your filesystems under `/mnt`.
+2. Generate the initial hardware config:
+
+```sh
+nixos-generate-config --root /mnt
+```
+
+3. Clone the repo somewhere and run bootstrap (it will install the repo into `/mnt/etc/nixos`):
+
+```sh
+nix-shell -p git --run "git clone https://github.com/philipp-tty/nixos /tmp/nixos"
+HOST=zeus /tmp/nixos/scripts/bootstrap.sh
+reboot
+```
+
+### First boot / existing install
+
+```sh
+nix-shell -p git --run "git clone https://github.com/philipp-tty/nixos ~/nixos"
+cd ~/nixos
+HOST=zeus ./scripts/bootstrap.sh
+```
+
+## Manual Install (No Bootstrap)
+
+### Fresh install (from the NixOS ISO)
+
+After mounting `/mnt` and running `nixos-generate-config --root /mnt`:
+
+```sh
+mv /mnt/etc/nixos /mnt/etc/nixos.generated
+nix-shell -p git --run "git clone https://github.com/philipp-tty/nixos /mnt/etc/nixos"
+cp /mnt/etc/nixos.generated/hardware-configuration.nix /mnt/etc/nixos/hosts/zeus/hardware-configuration.nix
+nixos-install --flake /mnt/etc/nixos#zeus
+reboot
+```
+
+### Apply on an installed system
+
+```sh
+nix-shell -p git --run "git clone https://github.com/philipp-tty/nixos ~/nixos"
+cd ~/nixos
+cp /etc/nixos/hardware-configuration.nix hosts/zeus/hardware-configuration.nix
+sudo nixos-rebuild switch --flake .#zeus
+```
+
+If flakes aren't enabled yet, prefix with:
+
+```sh
+sudo env NIX_CONFIG="experimental-features = nix-command flakes" nixos-rebuild switch --flake .#zeus
+```
+
+## Suggested Partitioning (Optional)
+
+If you want to be able to reinstall without wiping your home directory, keep `/home` on a separate partition.
+
+Suggested UEFI + GPT layout:
+- EFI System Partition: 512 MiB, FAT32, mounted at `/boot`
+- Root partition: 60-120 GiB, ext4, mounted at `/`
+- Home partition: rest of disk, ext4, mounted at `/home`
+- Optional swap: 8-32 GiB (or use a swap file/zram later)
+
+Example (adjust device names):
 
 ```sh
 mkfs.fat -F32 /dev/nvme0n1p1
 mkfs.ext4 -L nixos /dev/nvme0n1p2
 mkfs.ext4 -L home /dev/nvme0n1p3
-```
 
-3. Mount them:
-
-```sh
 mount /dev/nvme0n1p2 /mnt
 mkdir -p /mnt/boot /mnt/home
 mount /dev/nvme0n1p1 /mnt/boot
 mount /dev/nvme0n1p3 /mnt/home
 ```
 
-4. Generate configs:
-
-```sh
-nixos-generate-config --root /mnt
-```
-
-5. Copy `/mnt/etc/nixos/hardware-configuration.nix` into this repo at `hosts/zeus/hardware-configuration.nix`.
-6. Install NixOS, then rebuild using the flake.
-
-## Bootstrap script (installer or first boot)
-
-The script `scripts/bootstrap.sh` will:
-
-- clone/update the repo
-- copy `hardware-configuration.nix` into `hosts/zeus/`
-- run `nixos-install` (installer) or `nixos-rebuild` (first boot)
-
-### Installer usage
-
-After mounting `/mnt` and running `nixos-generate-config`:
-
-```sh
-nix-shell -p git --run "git clone https://github.com/philipp-tty/nixos /mnt/etc/nixos"
-/mnt/etc/nixos/scripts/bootstrap.sh
-```
-
-### Direct run (no clone)
-
-Installer (runs `nixos-install`):
-
-```sh
-nix-shell -p curl --run "curl -fsSL https://raw.githubusercontent.com/philipp-tty/nixos/main/scripts/bootstrap.sh | bash"
-```
-
-First boot (runs `nixos-rebuild`):
-
-```sh
-nix-shell -p curl --run "curl -fsSL https://raw.githubusercontent.com/philipp-tty/nixos/main/scripts/bootstrap.sh | bash"
-```
-
-To target a different host, set `HOST=your-hostname` before the command.
-
-### First boot usage
-
-```sh
-nix-shell -p git --run "git clone https://github.com/philipp-tty/nixos ~/nixos"
-~/nixos/scripts/bootstrap.sh
-```
-
-To skip the install/rebuild step, set `SKIP_INSTALL=1` or `SKIP_REBUILD=1`.
-
-## First boot (after install)
-
-1. Log in and make sure networking works (wired is easiest).
-2. Open a terminal and get `git` if you don't have it yet:
-
-```sh
-nix-shell -p git
-```
-
-3. Clone the repo and enter it:
-
-```sh
-git clone https://github.com/philipp-tty/nixos
-cd nixos
-```
-
-4. Copy the generated hardware config into the repo (use `sudo` if you get a permission error):
-
-```sh
-cp /etc/nixos/hardware-configuration.nix hosts/zeus/hardware-configuration.nix
-```
-
-5. Apply your flake (temporarily enable flakes if needed):
-
-```sh
-sudo NIX_CONFIG="experimental-features = nix-command flakes" nixos-rebuild switch --flake .#zeus
-```
-
-6. Reboot and confirm GNOME + your packages are present.
-
-## Keeping your SSH files
-
-- If `/home` is on its own partition, `~/.ssh` stays intact across reinstalls.
-- Create the same username during reinstall (or set `users.users.<name>.uid` to match) so ownership stays correct.
-- As a safety net, back up `~/.ssh` to external storage before reinstalling.
+Keeping SSH across reinstalls:
+- if `/home` is separate, `~/.ssh` survives reinstalls automatically
+- use the same Linux username (or match the UID) so file ownership stays correct

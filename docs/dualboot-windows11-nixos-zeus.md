@@ -1,4 +1,7 @@
-# Dual Boot Plan: Windows 11 (Disk 1) + NixOS (Disk 0) with Secure Boot
+# Dual boot plan (zeus): Windows 11 + NixOS + Secure Boot
+
+This is a zeus-specific install plan. Commands here are destructive; read the whole file and adapt device names/UUIDs before running anything.
+Last reviewed: 2026-02-06.
 
 ## Summary
 - Windows 11 on Disk 1, NixOS on Disk 0.
@@ -62,13 +65,12 @@ nixos-generate-config --root /mnt
 ```
 
 ### Install with flakes
-If you can clone your repo:
-```sh
-git clone <your repo url> /mnt/etc/nixos
-```
+After `nixos-generate-config --root /mnt`, `/mnt/etc/nixos` is non-empty. Either use the bootstrap flow from `docs/INSTALL.md`, or move it aside before cloning:
 
-Then:
 ```sh
+mv /mnt/etc/nixos /mnt/etc/nixos.generated
+nix-shell -p git --run "git clone <your repo url> /mnt/etc/nixos"
+cp /mnt/etc/nixos.generated/hardware-configuration.nix /mnt/etc/nixos/hosts/zeus/hardware-configuration.nix
 nixos-install --flake /mnt/etc/nixos#zeus
 reboot
 ```

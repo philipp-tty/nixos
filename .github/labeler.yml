@@ -1,0 +1,16 @@
+hosts:
+  - changed-files:
+      - any-glob-to-any-file: "hosts/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: ".github/**"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file: "README.md"
+      - any-glob-to-any-file: "docs/**"
+
+scripts:
+  - changed-files:
+      - any-glob-to-any-file: "scripts/**"

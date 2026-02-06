@@ -1,0 +1,40 @@
+name: flake update
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly (default branch only)
+    - cron: "42 5 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+env:
+  NIX_CONFIG: |
+    experimental-features = nix-command flakes
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
+        with:
+          use-flakehub: false
+      - name: Update flake.lock
+        run: |
+          set -euo pipefail
+          nix flake update
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "flake.lock: update"
+          title: "flake.lock: update"
+          body: |
+            Automated weekly flake.lock update.
+          branch: "bot/flake-lock-update"
+          delete-branch: true
+          labels: |
+            automerge

@@ -1,19 +1,131 @@
-name: nix
+name: ci
 
 on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    # Nightly (default branch only)
+    - cron: "17 3 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
   id-token: write
 
+env:
+  NIX_CONFIG: |
+    experimental-features = nix-command flakes
+    extra-substituters = https://nix-community.cachix.org
+    extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+
 jobs:
-  build:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      nix: ${{ steps.out.outputs.nix }}
+      docs: ${{ steps.out.outputs.docs }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            nix:
+              - "flake.nix"
+              - "flake.lock"
+              - "**/*.nix"
+              - "hosts/**"
+              - "modules/**"
+              - "scripts/**"
+              - ".github/**"
+            docs:
+              - "README.md"
+              - "docs/**"
+      - id: out
+        name: Finalize Filters
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "nix=true" >> "$GITHUB_OUTPUT"
+            echo "docs=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "nix=${{ steps.filter.outputs.nix }}" >> "$GITHUB_OUTPUT"
+          echo "docs=${{ steps.filter.outputs.docs }}" >> "$GITHUB_OUTPUT"
+
+  eval:
+    needs: changes
+    if: needs.changes.outputs.nix == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: Eval (fail fast)
+        run: nix flake check --no-build --print-build-logs
+
+  flake-check:
+    needs: [changes, eval]
+    if: needs.changes.outputs.nix == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: Checks (fmt + lint + flake checks)
+        run: nix flake check --print-build-logs
+
+  matrix:
+    needs: [changes, eval]
+    if: needs.changes.outputs.nix == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.mk.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - id: mk
+        name: Compute Build Matrix
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          data = json.loads(subprocess.check_output(["nix", "flake", "show", "--json"]))
+          configs = sorted((data.get("nixosConfigurations") or {}).keys())
+          if not configs:
+            raise SystemExit("No nixosConfigurations found in flake outputs.")
+
+          build_configs = [c for c in configs if c.endswith("-ci")] or configs
+          matrix = {"include": [{"config": c} for c in build_configs]}
+
+          out = os.environ["GITHUB_OUTPUT"]
+          with open(out, "a", encoding="utf-8") as f:
+            f.write(f"matrix={json.dumps(matrix)}\n")
+
+          print("Configs:", " ".join(configs))
+          print("Build configs:", " ".join(build_configs))
+          PY
+
+  build:
+    needs: [changes, flake-check, matrix]
+    if: needs.changes.outputs.nix == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.build) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Free disk space
         run: |
           set -euo pipefail
@@ -33,8 +145,118 @@ jobs:
           df -h
       - uses: DeterminateSystems/determinate-nix-action@v3
       - uses: DeterminateSystems/flakehub-cache-action@main
-      - run: nix build .#nixosConfigurations.zeus-ci.config.system.build.toplevel -o result-toplevel
+      - name: Build ${{ matrix.config }}
+        run: |
+          set -euo pipefail
+          nix build ".#nixosConfigurations.${{ matrix.config }}.config.system.build.toplevel" \
+            --print-build-logs \
+            -o "result-toplevel-${{ matrix.config }}"
+
+          toplevel="$(readlink -f "result-toplevel-${{ matrix.config }}")"
+          echo "toplevel=${toplevel}" | tee "closure-${{ matrix.config }}.txt"
+
+          echo "## Build: ${{ matrix.config }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`$toplevel\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Closure size" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          nix path-info -Sh "$toplevel" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: closure-${{ matrix.config }}
+          path: |
+            closure-${{ matrix.config }}.txt
+
+  diff:
+    needs: [changes, flake-check, matrix]
+    if: github.event_name == 'pull_request' && needs.changes.outputs.nix == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.build) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Free disk space
+        run: |
+          set -euo pipefail
+          echo "Disk usage before:"
+          df -h
+
+          # Remove large preinstalled toolchains we don't need for Nix builds.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/lib/android
+          sudo rm -rf /usr/local/share/powershell /usr/local/share/chromium || true
+
+          sudo apt-get clean || true
+          sudo rm -rf /var/lib/apt/lists/* || true
+
+          sudo docker system prune -af || true
+
+          echo "Disk usage after:"
+          df -h
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: Build base + head and diff closures (${{ matrix.config }})
         env:
-          NIX_CONFIG: |
-            extra-substituters = https://nix-community.cachix.org
-            extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+
+          git fetch --no-tags --prune --depth=1 origin "$BASE_SHA"
+          git worktree add ../_base "$BASE_SHA"
+
+          nix build "../_base#nixosConfigurations.${{ matrix.config }}.config.system.build.toplevel" \
+            --print-build-logs \
+            -o "result-base-${{ matrix.config }}"
+
+          nix build ".#nixosConfigurations.${{ matrix.config }}.config.system.build.toplevel" \
+            --print-build-logs \
+            -o "result-head-${{ matrix.config }}"
+
+          base="$(readlink -f "result-base-${{ matrix.config }}")"
+          head="$(readlink -f "result-head-${{ matrix.config }}")"
+
+          {
+            echo "config=${{ matrix.config }}"
+            echo "base=${base}"
+            echo "head=${head}"
+          } > "diff-meta-${{ matrix.config }}.txt"
+
+          nix run nixpkgs#nvd -- diff "$base" "$head" | tee "nvd-${{ matrix.config }}.txt"
+          nix store diff-closures "$base" "$head" | tee "diff-closures-${{ matrix.config }}.txt"
+
+          echo "## Closure diff: ${{ matrix.config }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Base: \`$base\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Head: \`$head\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### nvd" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat "nvd-${{ matrix.config }}.txt" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### nix store diff-closures" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat "diff-closures-${{ matrix.config }}.txt" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: closure-diff-${{ matrix.config }}
+          path: |
+            diff-meta-${{ matrix.config }}.txt
+            nvd-${{ matrix.config }}.txt
+            diff-closures-${{ matrix.config }}.txt
+
+  docs-only:
+    needs: changes
+    if: needs.changes.outputs.nix != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Docs-only change; skipping Nix CI jobs." >> "$GITHUB_STEP_SUMMARY"

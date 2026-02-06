@@ -54,12 +54,14 @@ gitx() {
 }
 
 run_nix_command() {
-  if run_as_root command -v git >/dev/null 2>&1; then
+  # `sudo command -v ...` is unreliable because `command` is a shell builtin.
+  # Check tool availability in the same root context we will run the nix command in.
+  if run_as_root git --version >/dev/null 2>&1; then
     run_as_root env NIX_CONFIG="$NIX_EXPERIMENTAL" "$@"
     return
   fi
-  if ! command -v nix-shell >/dev/null 2>&1; then
-    echo "git not found and nix-shell not available. Install git first." >&2
+  if ! run_as_root nix-shell --version >/dev/null 2>&1; then
+    echo "git not found (for root) and nix-shell not available. Install git or make nix-shell available." >&2
     exit 1
   fi
   local cmd=""

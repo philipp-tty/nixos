@@ -2,11 +2,11 @@
 
 ## Summary
 - Windows 11 on Disk 1, NixOS on Disk 0.
-- Shared EFI System Partition (ESP) on Disk 1 mounted at /boot in NixOS.
-- NixOS default boot with fast menu timeout (0 or 1 second).
+- Shared EFI System Partition (ESP) on Disk 1 mounted at `/boot` in NixOS.
+- NixOS default boot with short menu timeout (0-1 seconds).
 - One-time reboot into Windows from NixOS using systemd-boot entry.
 - Btrfs on LUKS full-disk encryption for Disk 0.
-- Flakes with host zeus.
+- Flakes with host `zeus`.
 - Hibernation not configured (zram swap only).
 
 ## Firmware prerequisites
@@ -22,20 +22,22 @@
 
 ## NixOS installation (Disk 0)
 ### Identify disks and ESP
-`
+```sh
 lsblk -o NAME,SIZE,MODEL,TYPE,FSTYPE
-`
+```
 Set:
-- DISK0=/dev/... (NixOS disk)
-- ESP_UUID=XXXX-XXXX (EFI partition on Disk 1)
+- `DISK0=/dev/...` (NixOS disk)
+- `CRYPT_PART=/dev/...` (the NixOS partition on Disk 0; adjust for your device naming)
+- `ESP_UUID=XXXX-XXXX` (EFI partition UUID on Disk 1)
 
 ### Partition Disk 0 and set up LUKS + Btrfs
-`
-sgdisk --zap-all 
-sgdisk -n 1:0:0 -t 1:8309 -c 1: nixos-crypt 
+```sh
+# Danger: destructive. Double-check DISK0/CRYPT_PART before running.
+sgdisk --zap-all "$DISK0"
+sgdisk -n 1:0:0 -t 1:8309 -c 1:nixos-crypt "$DISK0"
 
-cryptsetup luksFormat p1
-cryptsetup open p1 cryptroot
+cryptsetup luksFormat "$CRYPT_PART"
+cryptsetup open "$CRYPT_PART" cryptroot
 
 mkfs.btrfs -L nixos /dev/mapper/cryptroot
 
@@ -51,26 +53,25 @@ mount -o subvol=@home,compress=zstd,noatime,ssd,space_cache=v2 /dev/mapper/crypt
 mount -o subvol=@nix,compress=zstd,noatime,ssd,space_cache=v2 /dev/mapper/cryptroot /mnt/nix
 
 # Mount the Windows ESP as /boot
-mount /dev/disk/by-uuid/ /mnt/boot
-`
+mount "/dev/disk/by-uuid/${ESP_UUID}" /mnt/boot
+```
 
 ### Generate hardware config
-`
+```sh
 nixos-generate-config --root /mnt
-`
+```
 
 ### Install with flakes
 If you can clone your repo:
-`
+```sh
 git clone <your repo url> /mnt/etc/nixos
-`
-Or if you use the custom installer ISO, /mnt/etc/nixos already exists.
+```
 
 Then:
-`
+```sh
 nixos-install --flake /mnt/etc/nixos#zeus
 reboot
-`
+```
 
 ## Flake changes for Lanzaboote
 Edit flake.nix:
@@ -78,12 +79,12 @@ Edit flake.nix:
 - Include lanzaboote.nixosModules.lanzaboote in the mkZeus modules list.
 
 Example snippet (merge with existing):
-`
+```nix
 inputs = {
-  nixpkgs.url = github:NixOS/nixpkgs/nixos-unstable;
+  nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   lanzaboote = {
-    url = github:nix-community/lanzaboote/v0.3.0;
-    inputs.nixpkgs.follows = nixpkgs;
+    url = "github:nix-community/lanzaboote/v0.3.0";
+    inputs.nixpkgs.follows = "nixpkgs";
   };
   ...
 };
@@ -92,18 +93,18 @@ modules = [
   ...
   lanzaboote.nixosModules.lanzaboote
 ] ++ extraModules;
-`
+```
 
 ## Initial boot (systemd-boot)
 Before enabling Lanzaboote, ensure systemd-boot is on:
-`
+```nix
 boot.loader.systemd-boot.enable = true;
 boot.loader.efi.canTouchEfiVariables = true;
 boot.loader.timeout = 0;
-`
+```
 
 ## Enable Lanzaboote (after first boot)
-`
+```nix
 environment.systemPackages = [ pkgs.sbctl ];
 
 boot.loader.systemd-boot.enable = lib.mkForce false;
@@ -111,42 +112,42 @@ boot.lanzaboote = {
   enable = true;
   pkiBundle = /etc/secureboot;
 };
-`
+```
 
 Rebuild:
-`
+```sh
 sudo nixos-rebuild switch --flake /etc/nixos#zeus
-`
+```
 
 ## Enroll Secure Boot keys
-`
+```sh
 sudo sbctl create-keys
 sudo sbctl verify
-`
+```
 
 Put firmware into Secure Boot setup mode, then:
-`
+```sh
 sudo sbctl enroll-keys --microsoft
 reboot
-`
+```
 
 Verify:
-`
+```sh
 bootctl status
-`
+```
 
 ## Set NixOS default and one-time Windows boot
-`
+```sh
 bootctl list
 sudo bootctl set-default <nixos-id>
 sudo bootctl set-oneshot <windows-id>
 sudo systemctl reboot
-`
+```
 
 Alternative one-liner:
-`
+```sh
 sudo systemctl reboot --boot-loader-entry=<windows-id>
-`
+```
 
 ## Hibernation (not configured)
-This setup uses zram swap and no hibernation. If you want hibernation later, add a dedicated swap partition or Btrfs swapfile and set oot.resumeDevice and oot.resumeOffset.
+This setup uses zram swap and no hibernation. If you want hibernation later, add a dedicated swap partition or Btrfs swapfile and set `boot.resumeDevice` and `boot.resumeOffset`.

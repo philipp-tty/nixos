@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 env:
   NIX_CONFIG: |
@@ -35,3 +36,5 @@ jobs:
             Automated weekly flake.lock update.
           branch: "bot/flake-lock-update"
           delete-branch: true
+          labels: |
+            automerge

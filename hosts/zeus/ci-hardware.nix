@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ ... }:
 
 {
   # Minimal hardware config for CI evaluation only.
@@ -11,7 +11,4 @@
     device = "/dev/disk/by-label/boot";
     fsType = "vfat";
   };
-
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
 }

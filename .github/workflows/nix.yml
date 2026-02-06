@@ -65,7 +65,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/determinate-nix-action@v3
-      - uses: DeterminateSystems/flakehub-cache-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
+        with:
+          use-flakehub: false
       - name: Eval (fail fast)
         run: nix flake check --no-build --print-build-logs
 
@@ -76,7 +78,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/determinate-nix-action@v3
-      - uses: DeterminateSystems/flakehub-cache-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
+        with:
+          use-flakehub: false
       - name: Checks (fmt + lint + flake checks)
         run: nix flake check --print-build-logs
 
@@ -89,7 +93,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/determinate-nix-action@v3
-      - uses: DeterminateSystems/flakehub-cache-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
+        with:
+          use-flakehub: false
       - id: mk
         name: Compute Build Matrix
         run: |
@@ -144,7 +150,9 @@ jobs:
           echo "Disk usage after:"
           df -h
       - uses: DeterminateSystems/determinate-nix-action@v3
-      - uses: DeterminateSystems/flakehub-cache-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
+        with:
+          use-flakehub: false
       - name: Build ${{ matrix.config }}
         run: |
           set -euo pipefail
@@ -199,7 +207,9 @@ jobs:
           echo "Disk usage after:"
           df -h
       - uses: DeterminateSystems/determinate-nix-action@v3
-      - uses: DeterminateSystems/flakehub-cache-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@v13
+        with:
+          use-flakehub: false
       - name: Build base + head and diff closures (${{ matrix.config }})
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}

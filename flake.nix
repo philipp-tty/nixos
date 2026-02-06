@@ -20,7 +20,7 @@
   }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
-    lib = nixpkgs.lib;
+    inherit (nixpkgs) lib;
     src = lib.cleanSourceWith {
       src = ./.;
       filter = path: type: let
@@ -32,16 +32,18 @@
         && name != ".direnv";
     };
     mkZeus = extraModules:
-      nixpkgs.lib.nixosSystem {
+      lib.nixosSystem {
         inherit system;
         modules =
           [
             sops-nix.nixosModules.sops
             home-manager.nixosModules.home-manager
             {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.users.philipp = import ./hosts/zeus/home.nix;
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                users.philipp = import ./hosts/zeus/home.nix;
+              };
             }
           ]
           ++ extraModules;

@@ -1,4 +1,4 @@
-{...}: {
+_: {
   networking.hostName = "zeus";
   networking.networkmanager.enable = true;
 

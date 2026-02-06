@@ -1,4 +1,4 @@
-{...}: {
+_: {
   # Minimal hardware config for CI evaluation only.
   fileSystems."/" = {
     device = "/dev/disk/by-label/nixos";

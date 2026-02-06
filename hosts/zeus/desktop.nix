@@ -1,6 +1,4 @@
-{ pkgs, ... }:
-
-{
+{pkgs, ...}: {
   # Needed for Steam/Discord/Chrome/PyCharm (unfree)
   nixpkgs.config.allowUnfree = true;
 
@@ -16,7 +14,7 @@
   # AMD GPU + Steam/Proton (32-bit userspace)
   hardware.graphics.enable = true;
   hardware.graphics.enable32Bit = true; # helpful for Wine/Steam/Proton
-  services.xserver.videoDrivers = [ "amdgpu" ];
+  services.xserver.videoDrivers = ["amdgpu"];
 
   # RX 7800 XT is RDNA3 (gfx1101). ROCm/OpenCL on NixOS typically uses this switch.
   hardware.amdgpu.opencl.enable = true;

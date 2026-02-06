@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   # Minimal placeholder so the flake evaluates on CI machines.
   # `scripts/bootstrap.sh` overwrites this with your real generated config.
   fileSystems."/" = {

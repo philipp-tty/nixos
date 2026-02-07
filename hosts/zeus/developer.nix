@@ -1,10 +1,11 @@
-{ pkgs, lib, ... }:
-
-let
+{
+  pkgs,
+  lib,
+  ...
+}: let
   # Keep the host config resilient if a package name differs across nixpkgs revisions.
   optionalPkg = name: lib.optional (builtins.hasAttr name pkgs) (builtins.getAttr name pkgs);
-in
-{
+in {
   environment.systemPackages =
     (with pkgs; [
       # dev
@@ -19,4 +20,3 @@ in
     ++ optionalPkg "opencode"
     ++ optionalPkg "claude-code";
 }
-

@@ -1,8 +1,12 @@
-_: {
+{pkgs, ...}: {
   networking.hostName = "zeus";
   networking.networkmanager.enable = true;
 
   time.timeZone = "Europe/Berlin";
+
+  environment.systemPackages = with pkgs; [
+    yt-dlp
+  ];
 
   # Nix: flakes + binary caches (prefer substitutes to avoid local builds).
   nix.settings = {

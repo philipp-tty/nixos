@@ -3,23 +3,20 @@
   nixpkgs.config.allowUnfree = true;
 
   services = {
-    # GNOME
     xserver = {
       enable = true;
       videoDrivers = ["amdgpu"];
     };
-    displayManager.gdm = {
-      enable = true;
-      wayland = true;
-    };
-    desktopManager.gnome.enable = true;
+
+    # KDE Plasma
+    displayManager.sddm.enable = true;
+    desktopManager.plasma6.enable = true;
   };
 
   programs = {
     dconf.enable = true;
 
-    # GNOME enables gcr-ssh-agent; avoid a second SSH agent.
-    ssh.startAgent = false;
+    ssh.startAgent = true;
 
     # Steam
     steam.enable = true;
@@ -63,11 +60,8 @@
     # tailscale cli
     tailscale
 
-    # GNOME look & feel (macOS-ish)
-    gnome-tweaks
+    # GTK theming for non-KDE apps
     adw-gtk3
     papirus-icon-theme
-    gnomeExtensions.dash-to-dock
-    gnomeExtensions.user-themes
   ];
 }

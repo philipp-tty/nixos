@@ -64,7 +64,7 @@ gitx() {
     return
   fi
   if ! command -v nix-shell >/dev/null 2>&1; then
-    log "ERROR: git not found and nix-shell not available. Install git first." >&2
+    log "ERROR: git command not found and nix-shell not available. Install git first." >&2
     exit 1
   fi
   local cmd
@@ -83,7 +83,7 @@ run_nix_command() {
     return
   fi
   if ! run_as_root nix-shell --version >/dev/null 2>&1; then
-    log "ERROR: git not found (for root) and nix-shell not available. Install git or make nix-shell available." >&2
+    log "ERROR: git command not available for root and nix-shell not available. Install git or make nix-shell available." >&2
     exit 1
   fi
   local cmd=""

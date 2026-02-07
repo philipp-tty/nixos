@@ -38,17 +38,10 @@
 
   # Packages
   environment.systemPackages = with pkgs; [
-    # dev
-    python3
-    nodejs
-    git
-    gh
-    codex
-    micromamba
-
     # apps
     discord
     vlc
+    ffmpeg
     firefox
     google-chrome
     cider

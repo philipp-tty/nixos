@@ -71,19 +71,26 @@ fi
 
 # Find Windows boot entry
 # Look for common Windows boot entry patterns
+# Strategy: Parse entry blocks and find the one with "Windows" in the title
 windows_id=""
+in_windows_entry=false
+
 while IFS= read -r line; do
-  # Match lines like "id: auto-windows" or "id: windows"
-  if [[ "$line" =~ ^[[:space:]]*id:[[:space:]]*(.*)$ ]]; then
-    current_id="${BASH_REMATCH[1]}"
+  # Empty line marks the end of an entry block
+  if [[ "$line" =~ ^[[:space:]]*$ ]]; then
+    in_windows_entry=false
+    continue
   fi
   
   # Check if this entry is for Windows (look for "Windows" in title)
-  if [[ "$line" =~ [Ww]indows ]]; then
-    if [ -n "$current_id" ]; then
-      windows_id="$current_id"
-      break
-    fi
+  if [[ "$line" =~ ^[[:space:]]*title:.*[Ww]indows ]]; then
+    in_windows_entry=true
+  fi
+  
+  # If we're in a Windows entry and found the id, save it
+  if [ "$in_windows_entry" = true ] && [[ "$line" =~ ^[[:space:]]*id:[[:space:]]*(.*)$ ]]; then
+    windows_id="${BASH_REMATCH[1]}"
+    break
   fi
 done <<< "$boot_entries"
 

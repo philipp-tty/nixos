@@ -72,28 +72,44 @@ fi
 
 # Find Windows boot entry
 # Look for common Windows boot entry patterns
-# Strategy: Parse entry blocks and find the one with "Windows" in the title
+# Strategy: Parse entry blocks (separated by empty lines) and find the one with "Windows" in the title
 windows_id=""
-in_windows_entry=false
+current_id=""
+current_title=""
 
-while IFS= read -r line; do
+while IFS= read -r line || [ -n "$line" ]; do
   # Empty line marks the end of an entry block
-  if [[ "$line" =~ ^[[:space:]]*$ ]]; then
-    in_windows_entry=false
+  if [[ "$line" =~ ^[[:space:]]*$ ]] || [ -z "$line" ]; then
+    # Check if the current block is a Windows entry
+    if [[ "$current_title" =~ [Ww]indows ]] && [ -n "$current_id" ]; then
+      windows_id="$current_id"
+      break
+    fi
+    # Reset for next block
+    current_id=""
+    current_title=""
     continue
   fi
   
-  # Check if this entry is for Windows (look for "Windows" in title)
-  if [[ "$line" =~ ^[[:space:]]*title:.*[Ww]indows ]]; then
-    in_windows_entry=true
+  # Extract title
+  if [[ "$line" =~ ^[[:space:]]*title:[[:space:]]*(.+)$ ]]; then
+    current_title="${BASH_REMATCH[1]}"
+    # Trim trailing whitespace
+    current_title="${current_title%"${current_title##*[![:space:]]}"}"
   fi
   
-  # If we're in a Windows entry and found the id, save it
-  if [ "$in_windows_entry" = true ] && [[ "$line" =~ ^[[:space:]]*id:[[:space:]]*(.*)$ ]]; then
-    windows_id="${BASH_REMATCH[1]}"
-    break
+  # Extract id
+  if [[ "$line" =~ ^[[:space:]]*id:[[:space:]]*(.+)$ ]]; then
+    current_id="${BASH_REMATCH[1]}"
+    # Trim trailing whitespace
+    current_id="${current_id%"${current_id##*[![:space:]]}"}"
   fi
 done <<< "$boot_entries"
+
+# Check the last block if we reached EOF without an empty line
+if [[ "$current_title" =~ [Ww]indows ]] && [ -n "$current_id" ]; then
+  windows_id="$current_id"
+fi
 
 if [ -z "$windows_id" ]; then
   error "Could not find Windows boot entry. Use --list to see available entries."
@@ -102,7 +118,7 @@ fi
 log "Found Windows boot entry: $windows_id"
 
 if [ "$dry_run" = true ]; then
-  log "Dry-run mode: would execute: sudo systemctl reboot --boot-loader-entry=$windows_id"
+  log "Dry-run mode: would execute: sudo systemctl reboot --boot-loader-entry=\"$windows_id\""
   exit 0
 fi
 

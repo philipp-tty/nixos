@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Reboot into Windows from NixOS (dual-boot systems with systemd-boot)
 
 usage() {
@@ -100,21 +101,16 @@ fi
 
 log "Found Windows boot entry: $windows_id"
 
-# Prepare the reboot command
-reboot_cmd="systemctl reboot --boot-loader-entry=$windows_id"
-
 if [ "$dry_run" = true ]; then
-  log "Dry-run mode: would execute: sudo $reboot_cmd"
+  log "Dry-run mode: would execute: sudo systemctl reboot --boot-loader-entry=$windows_id"
   exit 0
 fi
 
-# Check if we need sudo
+# Reboot into Windows
 if [ "$(id -u)" -eq 0 ]; then
   log "Rebooting into Windows..."
-  # shellcheck disable=SC2086
-  $reboot_cmd
+  systemctl reboot --boot-loader-entry="$windows_id"
 else
   log "Rebooting into Windows (requires sudo)..."
-  # shellcheck disable=SC2086
-  sudo $reboot_cmd
+  sudo systemctl reboot --boot-loader-entry="$windows_id"
 fi

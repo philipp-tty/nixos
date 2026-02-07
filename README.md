@@ -60,6 +60,9 @@ nix flake check
 
 # update pinned inputs (creates/updates flake.lock)
 nix flake update
+
+# reboot into Windows (dual-boot)
+reboot-to-windows
 ```
 
 ## Customizing

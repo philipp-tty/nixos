@@ -1,0 +1,113 @@
+# Reboot into Windows from NixOS (dual-boot systems with systemd-boot)
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Reboot into Windows on a dual-boot NixOS system.
+
+OPTIONS:
+  -l, --list      List available boot entries and exit
+  -h, --help      Show this help message
+  -n, --dry-run   Show what would be done without actually rebooting
+
+EXAMPLES:
+  $(basename "$0")              # Reboot into Windows
+  $(basename "$0") --list       # List available boot entries
+  $(basename "$0") --dry-run    # Show the command without executing
+
+This script requires systemd-boot and root privileges.
+EOF
+}
+
+log() {
+  echo "[reboot-to-windows] $*" >&2
+}
+
+error() {
+  echo "[reboot-to-windows] ERROR: $*" >&2
+  exit 1
+}
+
+# Parse command line arguments
+list_only=false
+dry_run=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -l|--list)
+      list_only=true
+      shift
+      ;;
+    -n|--dry-run)
+      dry_run=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      error "Unknown option: $1. Use --help for usage information."
+      ;;
+  esac
+done
+
+# Check if bootctl is available
+if ! command -v bootctl >/dev/null 2>&1; then
+  error "bootctl command not found. This script requires systemd-boot."
+fi
+
+# List boot entries
+log "Fetching boot entries..."
+if ! boot_entries=$(bootctl list 2>/dev/null); then
+  error "Failed to list boot entries. Make sure systemd-boot is properly configured."
+fi
+
+if [ "$list_only" = true ]; then
+  echo "$boot_entries"
+  exit 0
+fi
+
+# Find Windows boot entry
+# Look for common Windows boot entry patterns
+windows_id=""
+while IFS= read -r line; do
+  # Match lines like "id: auto-windows" or "id: windows"
+  if [[ "$line" =~ ^[[:space:]]*id:[[:space:]]*(.*)$ ]]; then
+    current_id="${BASH_REMATCH[1]}"
+  fi
+  
+  # Check if this entry is for Windows (look for "Windows" in title)
+  if [[ "$line" =~ [Ww]indows ]]; then
+    if [ -n "$current_id" ]; then
+      windows_id="$current_id"
+      break
+    fi
+  fi
+done <<< "$boot_entries"
+
+if [ -z "$windows_id" ]; then
+  error "Could not find Windows boot entry. Use --list to see available entries."
+fi
+
+log "Found Windows boot entry: $windows_id"
+
+# Prepare the reboot command
+reboot_cmd="systemctl reboot --boot-loader-entry=$windows_id"
+
+if [ "$dry_run" = true ]; then
+  log "Dry-run mode: would execute: sudo $reboot_cmd"
+  exit 0
+fi
+
+# Check if we need sudo
+if [ "$(id -u)" -eq 0 ]; then
+  log "Rebooting into Windows..."
+  # shellcheck disable=SC2086
+  $reboot_cmd
+else
+  log "Rebooting into Windows (requires sudo)..."
+  # shellcheck disable=SC2086
+  sudo $reboot_cmd
+fi

@@ -139,6 +139,31 @@ bootctl status
 ```
 
 ## Set NixOS default and one-time Windows boot
+
+### Using the reboot-to-windows script (recommended)
+
+The easiest way to reboot into Windows is using the provided script:
+
+```sh
+reboot-to-windows
+```
+
+This script automatically:
+- Detects the Windows boot entry
+- Sets it as a one-time boot target
+- Reboots the system
+
+Additional options:
+```sh
+reboot-to-windows --list      # List all available boot entries
+reboot-to-windows --dry-run   # Show what would be done without rebooting
+reboot-to-windows --help      # Show help message
+```
+
+### Manual method (advanced)
+
+If you need more control, you can use bootctl directly:
+
 ```sh
 bootctl list
 sudo bootctl set-default <nixos-id>

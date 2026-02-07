@@ -92,17 +92,13 @@ while IFS= read -r line || [ -n "$line" ]; do
   fi
   
   # Extract title
-  if [[ "$line" =~ ^[[:space:]]*title:[[:space:]]*(.+)$ ]]; then
+  if [[ "$line" =~ ^[[:space:]]*title:[[:space:]]*(.+[^[:space:]])[[:space:]]*$ ]]; then
     current_title="${BASH_REMATCH[1]}"
-    # Trim trailing whitespace
-    current_title="${current_title%"${current_title##*[![:space:]]}"}"
   fi
   
   # Extract id
-  if [[ "$line" =~ ^[[:space:]]*id:[[:space:]]*(.+)$ ]]; then
+  if [[ "$line" =~ ^[[:space:]]*id:[[:space:]]*(.+[^[:space:]])[[:space:]]*$ ]]; then
     current_id="${BASH_REMATCH[1]}"
-    # Trim trailing whitespace
-    current_id="${current_id%"${current_id##*[![:space:]]}"}"
   fi
 done <<< "$boot_entries"
 

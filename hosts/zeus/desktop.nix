@@ -1,4 +1,4 @@
-{pkgs, lib, ...}: {
+{pkgs, lib, config, ...}: {
   # Needed for Steam/Discord/Chrome/PyCharm (unfree)
   nixpkgs.config.allowUnfree = true;
 
@@ -11,6 +11,20 @@
     # KDE Plasma
     displayManager.sddm.enable = true;
     desktopManager.plasma6.enable = true;
+
+    # Flatpak support
+    flatpak.enable = true;
+  };
+
+  # Add flathub repository and install VS Code via flatpak
+  systemd.services.flatpak-repo = {
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.flatpak ];
+    script = ''
+      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+      # Install Visual Studio Code via flatpak
+      flatpak install -y --noninteractive flathub com.visualstudio.code || true
+    '';
   };
 
   programs = {
@@ -41,7 +55,7 @@
     ffmpeg
     firefox
     google-chrome
-    vscode
+    # vscode moved to flatpak - install via: flatpak install flathub com.visualstudio.code
     obsidian
     rustdesk
     remmina
@@ -68,5 +82,10 @@
   ]
   # `cider2` isn't available in all nixpkgs revisions; fall back to `cider` when present.
   ++ lib.optionals (pkgs ? cider2) [pkgs.cider2]
-  ++ lib.optionals (!(pkgs ? cider2) && (pkgs ? cider)) [pkgs.cider];
+  ++ lib.optionals (!(pkgs ? cider2) && (pkgs ? cider)) [pkgs.cider]
+  # Install GNOME Extensions when GNOME desktop is enabled
+  ++ lib.optionals (config.services.xserver.desktopManager.gnome.enable or false) [
+    pkgs.gnome-extension-manager
+    pkgs.gnomeExtensions.appindicator
+  ];
 }

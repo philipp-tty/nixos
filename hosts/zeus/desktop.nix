@@ -21,10 +21,21 @@
     wantedBy = [ "multi-user.target" ];
     path = [ pkgs.flatpak ];
     script = ''
+      # Add flathub repository if not already present
       flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-      # Install Visual Studio Code via flatpak
-      flatpak install -y --noninteractive flathub com.visualstudio.code || true
+      
+      # Install Visual Studio Code via flatpak if not already installed
+      if ! flatpak list --app | grep -q com.visualstudio.code; then
+        echo "Installing Visual Studio Code via flatpak..."
+        flatpak install -y --noninteractive flathub com.visualstudio.code
+      else
+        echo "Visual Studio Code is already installed via flatpak"
+      fi
     '';
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
   };
 
   programs = {

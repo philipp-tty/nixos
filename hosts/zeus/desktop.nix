@@ -1,4 +1,9 @@
-{pkgs, lib, ...}: {
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}: {
   # Needed for Steam/Discord/Chrome/PyCharm (unfree)
   nixpkgs.config.allowUnfree = true;
 
@@ -11,6 +16,31 @@
     # KDE Plasma
     displayManager.sddm.enable = true;
     desktopManager.plasma6.enable = true;
+
+    # Flatpak support
+    flatpak.enable = true;
+  };
+
+  # Add flathub repository and install VS Code via flatpak
+  systemd.services.flatpak-repo = {
+    wantedBy = ["multi-user.target"];
+    path = [pkgs.flatpak];
+    script = ''
+      # Add flathub repository if not already present
+      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+      # Install Visual Studio Code via flatpak if not already installed
+      if ! flatpak list --app --columns=application | grep -qx com.visualstudio.code; then
+        echo "Installing Visual Studio Code via flatpak..."
+        flatpak install --noninteractive flathub com.visualstudio.code
+      else
+        echo "Visual Studio Code is already installed via flatpak"
+      fi
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
   };
 
   programs = {
@@ -34,39 +64,45 @@
   };
 
   # Packages
-  environment.systemPackages = with pkgs; [
-    # apps
-    discord
-    vlc
-    ffmpeg
-    firefox
-    google-chrome
-    vscode
-    obsidian
-    rustdesk
-    remmina
-    tigervnc
-    turbovnc
-    bambu-studio
-    usbimager
+  environment.systemPackages = with pkgs;
+    [
+      # apps
+      discord
+      vlc
+      ffmpeg
+      firefox
+      google-chrome
+      # vscode moved to flatpak - install via: flatpak install flathub com.visualstudio.code
+      obsidian
+      rustdesk
+      remmina
+      tigervnc
+      turbovnc
+      bambu-studio
+      usbimager
 
-    # IDE
-    jetbrains.pycharm-oss
-    jetbrains-toolbox
+      # IDE
+      jetbrains.pycharm-oss
+      jetbrains-toolbox
 
-    # verify ROCm/OpenCL
-    clinfo
-    rocmPackages.rocminfo
-    rocmPackages.rocm-smi
+      # verify ROCm/OpenCL
+      clinfo
+      rocmPackages.rocminfo
+      rocmPackages.rocm-smi
 
-    # tailscale cli
-    tailscale
+      # tailscale cli
+      tailscale
 
-    # GTK theming for non-KDE apps
-    adw-gtk3
-    papirus-icon-theme
-  ]
-  # `cider2` isn't available in all nixpkgs revisions; fall back to `cider` when present.
-  ++ lib.optionals (pkgs ? cider2) [pkgs.cider2]
-  ++ lib.optionals (!(pkgs ? cider2) && (pkgs ? cider)) [pkgs.cider];
+      # GTK theming for non-KDE apps
+      adw-gtk3
+      papirus-icon-theme
+    ]
+    # `cider2` isn't available in all nixpkgs revisions; fall back to `cider` when present.
+    ++ lib.optionals (pkgs ? cider2) [pkgs.cider2]
+    ++ lib.optionals (!(pkgs ? cider2) && (pkgs ? cider)) [pkgs.cider]
+    # Install GNOME Extensions when GNOME desktop is enabled
+    ++ lib.optionals (config.services.xserver.desktopManager.gnome.enable or false) [
+      pkgs.gnome-extension-manager
+      pkgs.gnomeExtensions.appindicator
+    ];
 }

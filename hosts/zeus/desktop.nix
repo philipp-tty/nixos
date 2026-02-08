@@ -1,4 +1,4 @@
-{pkgs, ...}: {
+{pkgs, lib, ...}: {
   # Needed for Steam/Discord/Chrome/PyCharm (unfree)
   nixpkgs.config.allowUnfree = true;
 
@@ -41,10 +41,11 @@
     ffmpeg
     firefox
     google-chrome
-    cider2
     vscode
     obsidian
     rustdesk
+    remmina
+    turbovnc
     bambu-studio
     usbimager
 
@@ -63,5 +64,8 @@
     # GTK theming for non-KDE apps
     adw-gtk3
     papirus-icon-theme
-  ];
+  ]
+  # `cider2` isn't available in all nixpkgs revisions; fall back to `cider` when present.
+  ++ lib.optionals (pkgs ? cider2) [pkgs.cider2]
+  ++ lib.optionals (!(pkgs ? cider2) && (pkgs ? cider)) [pkgs.cider];
 }

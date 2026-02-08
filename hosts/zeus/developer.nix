@@ -71,18 +71,26 @@ in {
     description = "Ensure Codex/OpenCode/Claude Code CLIs are installed via npm";
     after = ["network-online.target"];
     wants = ["network-online.target"];
-    wantedBy = ["multi-user.target"];
 
-    # Run once; re-run manually (or delete the prefix) to force reinstall.
+    # `npm` may spawn `sh` for lifecycle scripts; provide a shell + a few basics in PATH.
+    path = with pkgs; [
+      bash
+      nodejs
+      git
+      python3
+    ];
+
+    # Run via timer to avoid blocking `nixos-rebuild switch` if npm is temporarily unhappy.
     serviceConfig = {
       Type = "oneshot";
-      RemainAfterExit = true;
       TimeoutStartSec = "30min";
       Environment = [
         "HOME=/var/lib/npm"
         "NPM_CONFIG_PREFIX=${npmGlobalPrefix}"
         "NPM_CONFIG_CACHE=/var/cache/npm"
         "NPM_CONFIG_UPDATE_NOTIFIER=false"
+        "SHELL=${pkgs.bash}/bin/bash"
+        "npm_config_script_shell=${pkgs.bash}/bin/bash"
       ];
 
       ExecStart = pkgs.writeShellScript "npm-global-agent-clis" ''
@@ -102,6 +110,17 @@ in {
             @anthropic-ai/claude-code
         fi
       '';
+    };
+  };
+
+  systemd.timers.npm-global-agent-clis = {
+    description = "Ensure Codex/OpenCode/Claude Code CLIs are installed via npm (timer)";
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnBootSec = "2min";
+      OnUnitActiveSec = "1d";
+      Persistent = true;
+      Unit = "npm-global-agent-clis.service";
     };
   };
 }

@@ -41,7 +41,7 @@
     ffmpeg
     firefox
     google-chrome
-    cider
+    cider2
     vscode
     obsidian
     rustdesk

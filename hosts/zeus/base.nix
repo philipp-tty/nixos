@@ -1,4 +1,10 @@
-{pkgs, ...}: {
+{pkgs, ...}: let
+  reboot-to-windows = pkgs.writeShellApplication {
+    name = "reboot-to-windows";
+    runtimeInputs = with pkgs; [systemd];
+    text = builtins.readFile ../../scripts/reboot-to-windows.sh;
+  };
+in {
   networking.hostName = "zeus";
   networking.networkmanager.enable = true;
 
@@ -6,6 +12,7 @@
 
   environment.systemPackages = with pkgs; [
     yt-dlp
+    reboot-to-windows
   ];
 
   # Nix: flakes + binary caches (prefer substitutes to avoid local builds).

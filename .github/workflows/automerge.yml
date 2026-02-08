@@ -24,13 +24,14 @@ jobs:
           head_sha="${{ github.event.workflow_run.head_sha }}"
           export HEAD_SHA="$head_sha"
 
-          prs="$(
-            python3 - <<'PY'
-            import json, os
-            ev = json.load(open(os.environ["GITHUB_EVENT_PATH"], "r", encoding="utf-8"))
-            prs = ev.get("workflow_run", {}).get("pull_requests") or []
-            print(" ".join(str(pr["number"]) for pr in prs))
-            PY
+          prs="$(python3 - <<'PY'
+          import json
+          import os
+
+          ev = json.load(open(os.environ["GITHUB_EVENT_PATH"], "r", encoding="utf-8"))
+          prs = ev.get("workflow_run", {}).get("pull_requests") or []
+          print(" ".join(str(pr["number"]) for pr in prs))
+          PY
           )"
 
           if [ -z "$prs" ]; then
@@ -44,50 +45,50 @@ jobs:
               gh pr view "$pr" -R "$repo" \
                 --json state,isDraft,isCrossRepository,labels,headRefOid,mergeable,mergeStateStatus,reviewDecision \
               | python3 - <<'PY'
-              import json
-              import os
-              import sys
+          import json
+          import os
+          import sys
 
-              d = json.load(sys.stdin)
-              head_sha = os.environ["HEAD_SHA"]
+          d = json.load(sys.stdin)
+          head_sha = os.environ["HEAD_SHA"]
 
-              if d.get("state") != "OPEN":
-                print(f"skip: state={d.get('state')}")
-                raise SystemExit(0)
+          if d.get("state") != "OPEN":
+            print("skip: state={}".format(d.get("state")))
+            raise SystemExit(0)
 
-              if d.get("isDraft"):
-                print("skip: draft")
-                raise SystemExit(0)
+          if d.get("isDraft"):
+            print("skip: draft")
+            raise SystemExit(0)
 
-              # We don't auto-merge PRs from forks (token permissions + safety).
-              if d.get("isCrossRepository"):
-                print("skip: cross-repo PR")
-                raise SystemExit(0)
+          # We don't auto-merge PRs from forks (token permissions + safety).
+          if d.get("isCrossRepository"):
+            print("skip: cross-repo PR")
+            raise SystemExit(0)
 
-              labels = [l.get("name") for l in (d.get("labels") or [])]
-              if "automerge" not in labels:
-                print("skip: missing automerge label")
-                raise SystemExit(0)
+          labels = [l.get("name") for l in (d.get("labels") or [])]
+          if "automerge" not in labels:
+            print("skip: missing automerge label")
+            raise SystemExit(0)
 
-              if d.get("headRefOid") != head_sha:
-                print("skip: head moved since CI run")
-                raise SystemExit(0)
+          if d.get("headRefOid") != head_sha:
+            print("skip: head moved since CI run")
+            raise SystemExit(0)
 
-              # GitHub's merge state already accounts for required checks/blocks.
-              if d.get("mergeable") != "MERGEABLE":
-                print(f"skip: mergeable={d.get('mergeable')}")
-                raise SystemExit(0)
+          # GitHub's merge state already accounts for required checks/blocks.
+          if d.get("mergeable") != "MERGEABLE":
+            print("skip: mergeable={}".format(d.get("mergeable")))
+            raise SystemExit(0)
 
-              if d.get("mergeStateStatus") != "CLEAN":
-                print(f"skip: mergeStateStatus={d.get('mergeStateStatus')}")
-                raise SystemExit(0)
+          if d.get("mergeStateStatus") != "CLEAN":
+            print("skip: mergeStateStatus={}".format(d.get("mergeStateStatus")))
+            raise SystemExit(0)
 
-              if (d.get("reviewDecision") or "") == "REVIEW_REQUIRED":
-                print("skip: review required")
-                raise SystemExit(0)
+          if (d.get("reviewDecision") or "") == "REVIEW_REQUIRED":
+            print("skip: review required")
+            raise SystemExit(0)
 
-              print("merge")
-              PY
+          print("merge")
+          PY
             )"
 
             if [ "$decision" != "merge" ]; then

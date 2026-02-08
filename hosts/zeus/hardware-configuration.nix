@@ -11,26 +11,33 @@
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
-  boot.initrd.availableKernelModules = ["nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod"];
-  boot.initrd.kernelModules = [];
-  boot.kernelModules = ["kvm-amd"];
-  boot.extraModulePackages = [];
+  boot = {
+    initrd = {
+      availableKernelModules = ["nvme" "xhci_pci" "ahci" "usbhid" "usb_storage" "sd_mod"];
+      kernelModules = [];
+    };
 
-  fileSystems."/" = {
-    device = "/dev/disk/by-uuid/2f5b1714-2a96-4989-b114-bb350073bcf5";
-    fsType = "btrfs";
-    options = ["subvol=@"];
+    kernelModules = ["kvm-amd"];
+    extraModulePackages = [];
   };
 
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/09EC-9450";
-    fsType = "vfat";
-    options = ["fmask=0077" "dmask=0077"];
-  };
+  fileSystems = {
+    "/" = {
+      device = "/dev/disk/by-uuid/2f5b1714-2a96-4989-b114-bb350073bcf5";
+      fsType = "btrfs";
+      options = ["subvol=@"];
+    };
 
-  fileSystems."/home" = {
-    device = "/dev/disk/by-uuid/dac70274-5b8b-42fa-b1cc-7de32b847161";
-    fsType = "btrfs";
+    "/boot" = {
+      device = "/dev/disk/by-uuid/09EC-9450";
+      fsType = "vfat";
+      options = ["fmask=0077" "dmask=0077"];
+    };
+
+    "/home" = {
+      device = "/dev/disk/by-uuid/dac70274-5b8b-42fa-b1cc-7de32b847161";
+      fsType = "btrfs";
+    };
   };
 
   swapDevices = [

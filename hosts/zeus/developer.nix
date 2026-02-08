@@ -107,7 +107,6 @@ in {
         '';
       };
     };
-
     timers.npm-global-agent-clis = {
       description = "Ensure Codex/OpenCode/Claude Code CLIs are installed via npm (timer)";
       wantedBy = ["timers.target"];

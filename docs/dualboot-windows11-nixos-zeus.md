@@ -83,7 +83,7 @@ Edit flake.nix:
 Example snippet (merge with existing):
 ```nix
 inputs = {
-  nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
   lanzaboote = {
     url = "github:nix-community/lanzaboote/v0.3.0";
     inputs.nixpkgs.follows = "nixpkgs";

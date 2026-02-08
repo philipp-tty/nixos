@@ -3,11 +3,11 @@
 
   inputs = {
     # Change this to the release you want to track.
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -42,6 +42,9 @@
               home-manager = {
                 useGlobalPkgs = true;
                 useUserPackages = true;
+                # Avoid Home Manager failing when legacy/manual dotfiles exist.
+                # Conflicting files get renamed to `*.hm-bak` on activation.
+                backupFileExtension = "hm-bak";
                 users.philipp = import ./hosts/zeus/home.nix;
               };
             }

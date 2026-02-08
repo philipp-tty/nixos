@@ -25,9 +25,9 @@
       flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
       
       # Install Visual Studio Code via flatpak if not already installed
-      if ! flatpak list --app | grep -q com.visualstudio.code; then
+      if ! flatpak list --app --columns=application | grep -qx com.visualstudio.code; then
         echo "Installing Visual Studio Code via flatpak..."
-        flatpak install -y --noninteractive flathub com.visualstudio.code
+        flatpak install --noninteractive flathub com.visualstudio.code
       else
         echo "Visual Studio Code is already installed via flatpak"
       fi

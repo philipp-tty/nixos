@@ -45,6 +45,7 @@
     obsidian
     rustdesk
     remmina
+    tigervnc
     turbovnc
     bambu-studio
     usbimager

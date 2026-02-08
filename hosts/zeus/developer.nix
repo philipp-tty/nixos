@@ -30,6 +30,7 @@ in {
     git
     gh
     micromamba
+    efibootmgr
 
     # developer CLI staples
     ripgrep # rg

@@ -161,11 +161,11 @@
       idle-activation-enabled = true;
     };
 
-    # Night-light – warm shift reduces blue sub-pixel stress on OLED
+    # Night-light (disabled)
     "org/gnome/settings-daemon/plugins/color" = {
-      night-light-enabled = true;
+      night-light-enabled = false;
+      night-light-schedule-automatic = false;
       night-light-temperature = gv.mkUint32 3200;
-      night-light-schedule-automatic = true;
     };
 
     # ── Workspace & window behaviour ────────────────────────────────────

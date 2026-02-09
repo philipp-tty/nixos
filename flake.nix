@@ -45,6 +45,10 @@
                 # Avoid Home Manager failing when legacy/manual dotfiles exist.
                 # Conflicting files get renamed to `*.hm-bak` on activation.
                 backupFileExtension = "hm-bak";
+                # If a previous backup already exists, overwrite it instead of
+                # failing activation (prevents rebuild failures on repeated
+                # collisions like `settings.ini.hm-bak`).
+                overwriteBackup = true;
                 users.philipp = import ./hosts/zeus/home.nix;
               };
             }

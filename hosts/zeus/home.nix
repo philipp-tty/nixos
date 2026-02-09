@@ -18,6 +18,7 @@
       gnomeExtensions.dash-to-dock
       gnomeExtensions.just-perfection
       gnomeExtensions.blur-my-shell
+      gnomeExtensions.user-themes
     ];
   };
 
@@ -74,12 +75,17 @@
         "dash-to-dock@micxgx.gmail.com"
         "just-perfection-desktop@just-perfection"
         "blur-my-shell@aunetx"
+        "user-theme@gnome-shell-extensions.gcampax.github.com"
       ];
       favorite-apps = [
         "org.gnome.Nautilus.desktop"
         "firefox.desktop"
         "code.desktop"
       ];
+    };
+
+    "org/gnome/shell/extensions/user-theme" = {
+      name = "WhiteSur-Dark";
     };
 
     # ── Just Perfection – kill the top bar ──────────────────────────────
@@ -161,11 +167,11 @@
       idle-activation-enabled = true;
     };
 
-    # Night-light – warm shift reduces blue sub-pixel stress on OLED
+    # Night-light (disabled)
     "org/gnome/settings-daemon/plugins/color" = {
-      night-light-enabled = true;
+      night-light-enabled = false;
+      night-light-schedule-automatic = false;
       night-light-temperature = gv.mkUint32 3200;
-      night-light-schedule-automatic = true;
     };
 
     # ── Workspace & window behaviour ────────────────────────────────────

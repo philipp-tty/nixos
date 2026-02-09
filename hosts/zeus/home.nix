@@ -11,7 +11,7 @@
     packages = with pkgs; [
       # macOS-inspired GTK theme & icons
       whitesur-gtk-theme
-      whitesur-icon-theme
+      kdePackages.breeze-icons
       apple-cursor
 
       # GNOME extensions for the macOS workflow
@@ -32,8 +32,8 @@
       package = pkgs.whitesur-gtk-theme;
     };
     iconTheme = {
-      name = "WhiteSur-dark";
-      package = pkgs.whitesur-icon-theme;
+      name = "breeze-dark";
+      package = pkgs.kdePackages.breeze-icons;
     };
     cursorTheme = {
       name = "macOS";
@@ -50,7 +50,7 @@
     "org/gnome/desktop/interface" = {
       color-scheme = "prefer-dark";
       gtk-theme = "WhiteSur-Dark";
-      icon-theme = "WhiteSur-dark";
+      icon-theme = "breeze-dark";
       cursor-theme = "macOS";
       cursor-size = 24;
       font-name = "Inter 11";

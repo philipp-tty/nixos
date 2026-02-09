@@ -23,6 +23,8 @@ in {
     # Add flathub repository and install VS Code via flatpak.
     systemd.services.flatpak-repo = {
       wantedBy = ["multi-user.target"];
+      after = ["network-online.target"];
+      wants = ["network-online.target"];
       path = [
         pkgs.flatpak
         pkgs.gnugrep
@@ -124,8 +126,9 @@ in {
         # GTK theming for non-KDE apps
         adw-gtk3
         papirus-icon-theme
-      ]
-      # Only install the newer CIDER package when available.
-      ++ lib.optionals (pkgs ? cider2) [pkgs.cider2];
+
+        # music
+        cider-2
+      ];
   };
 }

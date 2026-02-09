@@ -18,6 +18,7 @@
       gnomeExtensions.dash-to-dock
       gnomeExtensions.just-perfection
       gnomeExtensions.blur-my-shell
+      gnomeExtensions.user-themes
     ];
   };
 
@@ -74,12 +75,17 @@
         "dash-to-dock@micxgx.gmail.com"
         "just-perfection-desktop@just-perfection"
         "blur-my-shell@aunetx"
+        "user-theme@gnome-shell-extensions.gcampax.github.com"
       ];
       favorite-apps = [
         "org.gnome.Nautilus.desktop"
         "firefox.desktop"
         "code.desktop"
       ];
+    };
+
+    "org/gnome/shell/extensions/user-theme" = {
+      name = "WhiteSur-Dark";
     };
 
     # ── Just Perfection – kill the top bar ──────────────────────────────

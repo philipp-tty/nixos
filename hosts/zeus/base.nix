@@ -5,6 +5,9 @@
     text = builtins.readFile ../../scripts/reboot-to-windows.sh;
   };
 in {
+  # Needed for Steam/Discord/Chrome and some desktop themes/cursors (unfree)
+  nixpkgs.config.allowUnfree = true;
+
   networking.hostName = "zeus";
   networking.networkmanager.enable = true;
 
@@ -14,6 +17,12 @@ in {
     yt-dlp
     reboot-to-windows
   ];
+
+  # System-wide AppImage support (adds `appimage-run` and optional binfmt integration).
+  programs.appimage = {
+    enable = true;
+    binfmt = true;
+  };
 
   # Nix: flakes + binary caches (prefer substitutes to avoid local builds).
   nix.settings = {
@@ -25,8 +34,23 @@ in {
   };
 
   # Bootloader (UEFI)
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot = {
+    loader = {
+      systemd-boot = {
+        enable = true;
+        configurationLimit = 10;
+      };
+
+      efi.canTouchEfiVariables = true;
+    };
+  };
+
+  # Keep old NixOS system generations from accumulating forever.
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 14d";
+  };
 
   # SSH
   services.openssh.enable = true;

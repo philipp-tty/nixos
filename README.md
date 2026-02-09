@@ -49,6 +49,9 @@ reboot
 # show available flake outputs
 nix flake show
 
+# update pinned inputs (updates flake.lock)
+nix flake update
+
 # apply config (switch now)
 sudo nixos-rebuild switch --flake .#zeus
 
@@ -58,12 +61,27 @@ sudo nixos-rebuild test --flake .#zeus
 # eval + flake checks (useful in CI)
 nix flake check
 
-# update pinned inputs (creates/updates flake.lock)
-nix flake update
-
 # reboot into Windows (dual-boot)
 reboot-to-windows
 ```
+
+## Switching KDE <-> GNOME
+
+Desktop environment is selected per-host via `local.desktop`.
+
+Edit `hosts/zeus/desktop.nix`:
+
+- KDE Plasma: `local.desktop = "kde";`
+- GNOME: `local.desktop = "gnome";`
+- No desktop: `local.desktop = "none";`
+
+Then apply:
+
+```sh
+sudo nixos-rebuild switch --flake .#zeus
+```
+
+Changing the display manager (SDDM <-> GDM) is safest with a reboot.
 
 ## Customizing
 
@@ -71,6 +89,13 @@ This is a personal config; if you fork it, you almost certainly want to change:
 - `hosts/zeus/base.nix`: hostname, timezone, packages, system user(s)
 - `hosts/zeus/home.nix`: Home Manager settings (`home.username`, GNOME dconf, etc.)
 - `flake.nix`: the Home Manager user binding (`home-manager.users.<name> = ...`)
+
+## Disk Usage (Automatic Cleanup)
+
+This config enables automatic Nix garbage collection and limits the number of boot entries:
+
+- `nix.gc.*` in `hosts/zeus/base.nix`
+- `boot.loader.systemd-boot.configurationLimit` in `hosts/zeus/base.nix`
 
 ## Docs
 

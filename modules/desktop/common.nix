@@ -29,14 +29,22 @@ in {
       ];
       script = ''
         # Add flathub repository if not already present
-        flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+        flatpak remote-add --system --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
         # Install Visual Studio Code via flatpak if not already installed
-        if ! flatpak list --app --columns=application | grep -qx com.visualstudio.code; then
+        if ! flatpak list --system --app --columns=application | grep -qx com.visualstudio.code; then
           echo "Installing Visual Studio Code via flatpak..."
-          flatpak install --noninteractive flathub com.visualstudio.code
+          flatpak install --system --noninteractive flathub com.visualstudio.code
         else
           echo "Visual Studio Code is already installed via flatpak"
+        fi
+
+        # Install RustDesk via flatpak if not already installed
+        if ! flatpak list --system --app --columns=application | grep -qx com.rustdesk.RustDesk; then
+          echo "Installing RustDesk via flatpak..."
+          flatpak install --system --noninteractive flathub com.rustdesk.RustDesk
+        else
+          echo "RustDesk is already installed via flatpak"
         fi
       '';
       serviceConfig = {
@@ -94,7 +102,7 @@ in {
         google-chrome
         # vscode moved to flatpak - install via: flatpak install flathub com.visualstudio.code
         obsidian
-        rustdesk
+        # rustdesk moved to flatpak - install via: flatpak install flathub com.rustdesk.RustDesk
         remmina
         tigervnc
         turbovnc

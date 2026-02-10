@@ -18,6 +18,13 @@ in {
 
       # Flatpak support + Flathub.
       flatpak.enable = true;
+
+      # Printing support
+      printing.enable = true;
+      avahi = {
+        enable = true;
+        nssmdns4 = true;
+      };
     };
 
     # Add flathub repository and install VS Code via flatpak.
@@ -129,6 +136,10 @@ in {
 
         # music
         cider-2
+
+        # printing
+        cups-filters
+        ghostscript
       ];
   };
 }

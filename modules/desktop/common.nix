@@ -101,45 +101,46 @@ in {
     };
 
     # Packages
-    environment.systemPackages = with pkgs;
-      [
-        # apps
-        discord
-        vlc
-        ffmpeg
-        firefox
-        google-chrome
-        # vscode moved to flatpak - install via: flatpak install flathub com.visualstudio.code
-        obsidian
-        # rustdesk moved to flatpak - install via: flatpak install flathub com.rustdesk.RustDesk
-        remmina
-        tigervnc
-        turbovnc
-        bambu-studio
-        usbimager
+    environment.systemPackages = with pkgs; [
+      # apps
+      discord
+      vlc
+      ffmpeg
+      firefox
+      google-chrome
+      # vscode moved to flatpak - install via: flatpak install flathub com.visualstudio.code
+      obsidian
+      # rustdesk moved to flatpak - install via: flatpak install flathub com.rustdesk.RustDesk
+      remmina
+      tigervnc
+      turbovnc
+      bambu-studio
+      usbimager
 
-        # IDE
-        jetbrains.pycharm-oss
-        jetbrains-toolbox
+      # IDE
+      jetbrains.pycharm-oss
+      jetbrains-toolbox
 
-        # verify ROCm/OpenCL
-        clinfo
-        rocmPackages.rocminfo
-        rocmPackages.rocm-smi
+      # verify ROCm/OpenCL
+      clinfo
+      rocmPackages.rocminfo
+      rocmPackages.rocm-smi
 
-        # tailscale cli
-        tailscale
+      # tailscale
+      tailscale
+      tailscale-systray
+      trayscale
 
-        # GTK theming for non-KDE apps
-        adw-gtk3
-        papirus-icon-theme
+      # GTK theming for non-KDE apps
+      adw-gtk3
+      papirus-icon-theme
 
-        # music
-        cider-2
+      # music
+      cider-2
 
-        # printing
-        cups-filters
-        ghostscript
-      ];
+      # printing
+      cups-filters
+      ghostscript
+    ];
   };
 }

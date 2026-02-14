@@ -25,6 +25,7 @@ in {
     enable = true;
     binfmt = true;
   };
+  programs.zsh.enable = true;
 
   # Nix: flakes + binary caches (prefer substitutes to avoid local builds).
   nix.settings = {
@@ -63,6 +64,7 @@ in {
   users.users.philipp = {
     isNormalUser = true;
     extraGroups = ["wheel" "networkmanager"];
+    shell = pkgs.zsh;
   };
 
   system.stateVersion = "25.11"; # Adjust to the NixOS release you first installed.

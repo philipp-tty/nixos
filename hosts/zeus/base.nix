@@ -14,6 +14,8 @@ in {
   time.timeZone = "Europe/Berlin";
 
   environment.systemPackages = with pkgs; [
+    htop
+    neovim
     yt-dlp
     reboot-to-windows
   ];

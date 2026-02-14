@@ -22,92 +22,94 @@
     ];
   };
 
-  programs.home-manager.enable = true;
+  programs = {
+    home-manager.enable = true;
 
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-    autosuggestion.enable = true;
-    syntaxHighlighting.enable = true;
+    zsh = {
+      enable = true;
+      enableCompletion = true;
+      autosuggestion.enable = true;
+      syntaxHighlighting.enable = true;
 
-    shellAliases = {
-      ls = "eza --group-directories-first --icons=auto";
-      ll = "eza -lah --group-directories-first --icons=auto";
-      lt = "eza --tree --level=2 --icons=auto";
-      cat = "bat --style=plain";
+      shellAliases = {
+        ls = "eza --group-directories-first --icons=auto";
+        ll = "eza -lah --group-directories-first --icons=auto";
+        lt = "eza --tree --level=2 --icons=auto";
+        cat = "bat --style=plain";
+      };
+
+      initContent = ''
+        # Migrated from ~/.bashrc (micromamba shell initialization)
+        export MAMBA_EXE='${lib.getExe pkgs.micromamba}'
+        export MAMBA_ROOT_PREFIX='/home/philipp/.micromamba'
+        __mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
+        if [ $? -eq 0 ]; then
+            eval "$__mamba_setup"
+        else
+            alias micromamba="$MAMBA_EXE"
+        fi
+        unset __mamba_setup
+      '';
     };
 
-    initContent = ''
-      # Migrated from ~/.bashrc (micromamba shell initialization)
-      export MAMBA_EXE='${lib.getExe pkgs.micromamba}'
-      export MAMBA_ROOT_PREFIX='/home/philipp/.micromamba'
-      __mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
-      if [ $? -eq 0 ]; then
-          eval "$__mamba_setup"
-      else
-          alias micromamba="$MAMBA_EXE"
-      fi
-      unset __mamba_setup
-    '';
-  };
+    eza.enable = true;
+    bat.enable = true;
+    zoxide = {
+      enable = true;
+      enableZshIntegration = true;
+    };
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
+    };
 
-  programs.eza.enable = true;
-  programs.bat.enable = true;
-  programs.zoxide = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-  programs.fzf = {
-    enable = true;
-    enableZshIntegration = true;
-  };
+    starship = {
+      enable = true;
+      enableZshIntegration = true;
+      settings = {
+        add_newline = false;
+        format = "$username$hostname$directory$git_branch$git_status$nodejs$python$cmd_duration$line_break$character";
 
-  programs.starship = {
-    enable = true;
-    enableZshIntegration = true;
-    settings = {
-      add_newline = false;
-      format = "$username$hostname$directory$git_branch$git_status$nodejs$python$cmd_duration$line_break$character";
+        username = {
+          show_always = true;
+          format = "[$user]($style) ";
+          style_user = "bold cyan";
+        };
 
-      username = {
-        show_always = true;
-        format = "[$user]($style) ";
-        style_user = "bold cyan";
-      };
+        hostname = {
+          ssh_only = false;
+          format = "[@$hostname]($style) ";
+          style = "bold blue";
+        };
 
-      hostname = {
-        ssh_only = false;
-        format = "[@$hostname]($style) ";
-        style = "bold blue";
-      };
+        directory = {
+          truncation_length = 4;
+          truncation_symbol = "…/";
+          style = "bold green";
+        };
 
-      directory = {
-        truncation_length = 4;
-        truncation_symbol = "…/";
-        style = "bold green";
-      };
+        git_branch = {
+          symbol = "git:";
+          format = "[$symbol$branch]($style) ";
+          style = "bold magenta";
+        };
 
-      git_branch = {
-        symbol = "git:";
-        format = "[$symbol$branch]($style) ";
-        style = "bold magenta";
-      };
+        git_status = {
+          format = "([$all_status$ahead_behind]($style) )";
+          style = "bold red";
+        };
 
-      git_status = {
-        format = "([$all_status$ahead_behind]($style) )";
-        style = "bold red";
-      };
+        cmd_duration = {
+          min_time = 500;
+          format = "took [$duration]($style) ";
+          style = "yellow";
+        };
 
-      cmd_duration = {
-        min_time = 500;
-        format = "took [$duration]($style) ";
-        style = "yellow";
-      };
-
-      character = {
-        success_symbol = "[>](bold green)";
-        error_symbol = "[>](bold red)";
-        vimcmd_symbol = "[<](bold yellow)";
+        character = {
+          success_symbol = "[>](bold green)";
+          error_symbol = "[>](bold red)";
+          vimcmd_symbol = "[<](bold yellow)";
+        };
       };
     };
   };

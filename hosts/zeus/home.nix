@@ -9,9 +9,9 @@
     stateVersion = "25.11";
 
     packages = with pkgs; [
-      # macOS-inspired GTK theme & icons
+      # Desktop theming
       whitesur-gtk-theme
-      whitesur-icon-theme
+      papirus-icon-theme
       apple-cursor
 
       # GNOME extensions for the macOS workflow
@@ -158,8 +158,8 @@
       package = pkgs.whitesur-gtk-theme;
     };
     iconTheme = {
-      name = "WhiteSur-dark";
-      package = pkgs.whitesur-icon-theme;
+      name = "Papirus-Dark";
+      package = pkgs.papirus-icon-theme;
     };
     cursorTheme = {
       name = "macOS";
@@ -176,12 +176,14 @@
     "org/gnome/desktop/interface" = {
       color-scheme = "prefer-dark";
       gtk-theme = "WhiteSur-Dark";
-      icon-theme = "WhiteSur-dark";
+      icon-theme = "Papirus-Dark";
       cursor-theme = "macOS";
       cursor-size = 24;
       font-name = "Inter 11";
       document-font-name = "Inter 11";
       monospace-font-name = "JetBrains Mono 10";
+      # Hot-corner off – avoids accidental overview on OLED static area
+      enable-hot-corners = false;
       enable-animations = true;
       # Reduce OLED wear from overly bright accents
       accent-color = "slate";
@@ -299,9 +301,5 @@
       edge-tiling = true;
     };
 
-    # Hot-corner off – avoids accidental overview on OLED static area
-    "org/gnome/desktop/interface" = {
-      enable-hot-corners = false;
-    };
   };
 }

@@ -61,7 +61,10 @@ in {
   services.openssh.enable = true;
 
   # Tailscale
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    useRoutingFeatures = "client"; # needed for exit nodes as a client
+  };
 
   users.users.philipp = {
     isNormalUser = true;

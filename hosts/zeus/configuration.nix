@@ -4,5 +4,8 @@ _: {
     ./base.nix
     ./desktop.nix
     ./developer.nix
+    ../../modules/docker
   ];
+
+  local.docker.enable = true;
 }

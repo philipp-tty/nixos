@@ -4,15 +4,17 @@
   inputs = {
     # Change this to the release you want to track.
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    llm-agents.url = "github:numtide/llm-agents.nix";
   };
 
-  outputs = {
+  outputs = inputs@{
     nixpkgs,
     sops-nix,
     home-manager,
@@ -20,6 +22,11 @@
   }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+    pkgsUnstable = import inputs."nixpkgs-unstable" {
+      inherit system;
+      config.allowUnfree = true;
+    };
+    pkgsLlmAgents = inputs.llm-agents.packages.${system};
     inherit (nixpkgs) lib;
     src = lib.cleanSourceWith {
       src = ./.;
@@ -34,6 +41,9 @@
     mkZeus = extraModules:
       lib.nixosSystem {
         inherit system;
+        specialArgs = {
+          inherit pkgsUnstable pkgsLlmAgents;
+        };
         modules =
           [
             sops-nix.nixosModules.sops

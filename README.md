@@ -65,6 +65,25 @@ nix flake check
 reboot-to-windows
 ```
 
+## Update All Packages to the Latest Version
+
+To update everything this flake tracks to the newest available revisions:
+
+```sh
+cd ~/nixos
+
+# update all flake inputs to latest commits on their configured branches
+nix flake update
+
+# optional: review exactly what changed
+git diff -- flake.lock
+
+# apply the updated package set
+sudo nixos-rebuild switch --flake .#zeus
+```
+
+Note: this gets the latest versions on the branches set in `flake.nix` (for example `nixos-25.11` and `release-25.11`). To move to a newer release line, change those input URLs first, then run `nix flake update`.
+
 ## Switching KDE <-> GNOME
 
 Desktop environment is selected per-host via `local.desktop`.

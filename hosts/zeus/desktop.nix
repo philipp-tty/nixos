@@ -8,7 +8,7 @@ _: {
 
   # Auto-login on the selected display manager (GDM/SDDM/etc.).
   services.displayManager.autoLogin = {
-    enable = true;
+    enable = false;
     user = "philipp";
   };
 }

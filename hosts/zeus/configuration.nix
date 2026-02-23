@@ -4,6 +4,7 @@ _: {
     ./base.nix
     ./desktop.nix
     ./developer.nix
+    ./simulation.nix
     ../../modules/docker
   ];
 

@@ -33,6 +33,8 @@ in {
     python3
     nodejs # includes `npm`/`npx`
     pnpm
+    nodePackages.vercel
+    wrangler # Cloudflare CLI
     openssl
     texliveFull
     prisma-engines
@@ -58,6 +60,7 @@ in {
     pkgsLlmAgents.codex
     pkgsLlmAgents.opencode
     pkgsLlmAgents.claude-code
+    pkgsLlmAgents.cursor-agent
   ];
 
   # Prisma on NixOS: force CLI/runtime to use Nix-provided engines so it does

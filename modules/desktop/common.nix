@@ -80,6 +80,7 @@ in {
         [
           inter
           jetbrains-mono
+          nerd-fonts.jetbrains-mono
           noto-fonts
         ]
         ++ lib.optionals (pkgs ? noto-fonts-color-emoji) [noto-fonts-color-emoji]
@@ -88,7 +89,7 @@ in {
       fontconfig.defaultFonts = {
         sansSerif = ["Inter" "Noto Sans"];
         serif = ["Noto Serif"];
-        monospace = ["JetBrains Mono" "DejaVu Sans Mono"];
+        monospace = ["JetBrainsMono Nerd Font Mono" "JetBrains Mono" "DejaVu Sans Mono"];
         emoji = ["Noto Color Emoji"];
       };
     };

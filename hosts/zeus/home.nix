@@ -18,6 +18,7 @@
       gnomeExtensions.dash-to-dock
       gnomeExtensions.just-perfection
       gnomeExtensions.blur-my-shell
+      gnomeExtensions.tiling-assistant
     ];
   };
 
@@ -201,6 +202,7 @@
         "dash-to-dock@micxgx.gmail.com"
         "just-perfection-desktop@just-perfection"
         "blur-my-shell@aunetx"
+        "tiling-assistant@leleat-on-github"
       ];
       favorite-apps = [
         "org.gnome.Nautilus.desktop"

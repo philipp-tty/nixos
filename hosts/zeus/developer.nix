@@ -30,7 +30,7 @@ in {
 
   environment.systemPackages = with pkgs; [
     # dev
-    python3
+    (python3.withPackages (ps: with ps; [pip]))
     nodejs # includes `npm`/`npx`
     pnpm
     nodePackages.vercel

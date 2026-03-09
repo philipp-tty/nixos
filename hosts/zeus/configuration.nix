@@ -8,9 +8,15 @@ _: {
     ../../modules/docker
     ../../modules/rocm_whispercpp
     ../../modules/vulkan
+    ../../modules/emulators
+    ../../modules/office
   ];
 
-  local.docker.enable = true;
-  local.rocm_whispercpp.enable = true;
-  local.vulkan.enable = true;
+  local = {
+    docker.enable = true;
+    rocm_whispercpp.enable = true;
+    vulkan.enable = true;
+    emulators.enable = true;
+    office.enable = true;
+  };
 }

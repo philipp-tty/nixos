@@ -9,8 +9,7 @@
   whispercpp-gpu = pkgs.whisper-cpp.override {
     rocmSupport = true;
     vulkanSupport = true;
-    rocmPackages = pkgs.rocmPackages;
-    withFFmpegSupport = true;
+    inherit (pkgs) rocmPackages;
   };
 in {
   options.local.rocm_whispercpp = {
@@ -27,10 +26,12 @@ in {
   config = lib.mkIf cfg.enable {
     nixpkgs.config = {
       rocmSupport = true;
-      rocmTargets = cfg.rocmTargets;
+      inherit (cfg) rocmTargets;
     };
 
     environment.systemPackages = [
+      # Provide ffmpeg CLI for audio conversion/pre-processing with whisper workflows.
+      pkgs.ffmpeg
       whispercpp-gpu
     ];
   };

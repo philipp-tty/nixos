@@ -1,6 +1,5 @@
 {
   pkgs,
-  pkgsUnstable,
   pkgsLlmAgents,
   lib,
   ...
@@ -16,7 +15,10 @@
     else builtins.getAttr name packageSet;
 
   pkgByNames = pkgByNamesFrom pkgs;
-  unstablePkgByNames = pkgByNamesFrom pkgsUnstable;
+  llmCodex = pkgsLlmAgents.codex.overrideAttrs (_: {
+    # rustc suggests increasing stack size for this build path.
+    RUST_MIN_STACK = "16777216";
+  });
 in {
   # Required for running some prebuilt (non-Nix) Linux binaries downloaded by tools like npm.
   # Example: `opencode-ai` ships a dynamically linked executable.
@@ -49,6 +51,7 @@ in {
     (pkgByNames ["ast-grep"]) # sg
     (pkgByNames ["fd" "fd-find"])
     jq
+    nmap
     (pkgByNames ["yq-go" "yq"]) # yq
     (pkgByNames ["miller"]) # mlr
     csvkit # csvcut/csvstat/...
@@ -57,9 +60,10 @@ in {
     fzf
 
     # Agent CLIs from numtide/llm-agents.nix (daily builds, latest versions).
-    pkgsLlmAgents.codex
+    llmCodex
     pkgsLlmAgents.opencode
     pkgsLlmAgents.claude-code
+    pkgsLlmAgents."gemini-cli"
     pkgsLlmAgents.cursor-agent
   ];
 

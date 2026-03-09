@@ -16,9 +16,11 @@ in {
   environment.systemPackages = with pkgs; [
     dnsutils
     htop
-    libreoffice
+    jre
+    multiviewer-for-f1
     neovim
     nettools
+    wget
     yt-dlp
     reboot-to-windows
   ];

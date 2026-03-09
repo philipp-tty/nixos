@@ -14,14 +14,23 @@
     llm-agents.url = "github:numtide/llm-agents.nix";
   };
 
-  outputs = inputs@{
+  outputs = inputs @ {
+    self,
     nixpkgs,
     sops-nix,
     home-manager,
     ...
   }: let
     system = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${system};
+    overlay = final: _: {
+      multiviewer-for-f1 = final.callPackage ./pkgs/multiviewer-for-f1 {};
+      universal-pokemon-randomizer-zx = final.callPackage ./pkgs/universal-pokemon-randomizer-zx {};
+    };
+    pkgs = import nixpkgs {
+      inherit system;
+      config.allowUnfree = true;
+      overlays = [overlay];
+    };
     pkgsUnstable = import inputs."nixpkgs-unstable" {
       inherit system;
       config.allowUnfree = true;
@@ -49,6 +58,9 @@
             sops-nix.nixosModules.sops
             home-manager.nixosModules.home-manager
             {
+              nixpkgs.overlays = [self.overlays.default];
+            }
+            {
               home-manager = {
                 useGlobalPkgs = true;
                 useUserPackages = true;
@@ -66,6 +78,12 @@
           ++ extraModules;
       };
   in {
+    overlays.default = overlay;
+
+    packages.${system} = {
+      inherit (pkgs) multiviewer-for-f1 universal-pokemon-randomizer-zx;
+    };
+
     formatter.${system} = pkgs.alejandra;
 
     checks.${system} = {

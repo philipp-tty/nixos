@@ -302,6 +302,5 @@
       dynamic-workspaces = true;
       edge-tiling = true;
     };
-
   };
 }

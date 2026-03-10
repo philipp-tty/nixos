@@ -105,8 +105,8 @@ jobs:
           import os
           import subprocess
 
-          data = json.loads(subprocess.check_output(["nix", "flake", "show", "--json"]))
-          configs = sorted((data.get("nixosConfigurations") or {}).keys())
+          data = json.loads(subprocess.check_output(["nix", "eval", "--json", ".#nixosConfigurations", "--apply", "builtins.attrNames"]))
+          configs = sorted(data)
           if not configs:
             raise SystemExit("No nixosConfigurations found in flake outputs.")
 
